@@ -13,6 +13,10 @@ langchain-text-splitters = "^1.0.0"
 datasets = "^4.4.1"
 python-dotenv = "^1.2.1"
 sentence-transformers = "^5.1.2"
+langchain = "^1.1.0"
+langchain-huggingface = "^1.1.0"
+openai = "^2.8.1"
+tqdm = "^4.67.1"
 
 
 [build-system]

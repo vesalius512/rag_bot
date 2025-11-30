@@ -27,7 +27,7 @@ class DataSetLoader:
     def clean_html_text(text: str) -> str:
         """Очистка HTML текста"""
 
-        text = re.sub(r'#<[^>]+>', '', text)
+        text = re.sub(r'<[^>]+>', '', text)
         text = html.unescape(text)
         text = re.sub(r'\s+', ' ', text).strip()
 

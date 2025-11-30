@@ -15,3 +15,11 @@ def retry_connect(_func=None, *, retries=5):
             return None
         return wrapper
     return decorator(_func) if _func else decorator
+
+
+def coroutine(func):
+    def wrapper(*args, **kwargs):
+        cr = func(*args, **kwargs)
+        next(cr)
+        return cr
+    return wrapper
