@@ -9,13 +9,15 @@ YANDEX_CLOUD_API_KEY = os.environ.get('YANDEX_CLOUD_API_KEY')
 YANDEX_CLOUD_FOLDER = os.environ.get('YANDEX_CLOUD_FOLDER')
 YANDEX_CLOUD_MODEL = "yandexgpt-lite"
 
-PYTHON_KEYWORDS = ['pandas', 'numpy', 'django', 'flask', 'async', 'decorator', 'fastapi']
+REDDIT_CLIENT_ID = os.environ.get('REDDIT_CLIENT_ID')
+REDDIT_CLIENT_SECRET = os.environ.get('REDDIT_CLIENT_SECRET')
+REDDIT_PASSWORD = os.environ.get('REDDIT_PASSWORD')
+REDDIT_USERAGENT = os.environ.get('REDDIT_USERAGENT')
+REDDIT_USERNAME = os.environ.get('REDDIT_USERNAME')
 
-PROMTP_TMPL = ("""Ты - полезный помощник, способный отвечать на вопросы. 
-                  Используй предоставленные фрагменты контекста для формирования ответа.
-                  Если в контексте нет информации для ответа на вопрос, 
-                  ответь только этими словамим: 'Я не знаю, нет контекста'.
-                  Вопрос: {}
+CHROMA_PATH = './chroma_db'
+
+PROMTP_TMPL = ("""Ты - финансовый аналитик. Ответь на вопрос, используя только контекст ниже.
                   Контекст: {}
-                  Ответ: """)
-
+                  Вопрос: {}
+                  Ответ:""")

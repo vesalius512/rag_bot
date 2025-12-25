@@ -1,16 +1,22 @@
 import logging
 
 import openai
-from torch.distributed.rpc.api import docstring
 from tqdm import tqdm
 from langchain_chroma import Chroma
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-from constants import (YANDEX_CLOUD_FOLDER,
+from constants import (CHROMA_PATH,
+                       PROMTP_TMPL,
+                       REDDIT_PASSWORD,
+                       REDDIT_USERNAME,
+                       REDDIT_USERAGENT,
+                       REDDIT_CLIENT_ID,
+                       REDDIT_CLIENT_SECRET,
+                       YANDEX_CLOUD_FOLDER,
                        YANDEX_CLOUD_API_KEY,
-                       YANDEX_CLOUD_MODEL,
-                       PROMTP_TMPL)
+                       YANDEX_CLOUD_MODEL)
+from fetch_data import RedditConnector
 from rag_data import DataSetLoader
 from utils import coroutine
 
@@ -21,22 +27,27 @@ def init_logger():
     logger.setLevel(logging.INFO)
     return logger
 
+
 @coroutine
 def pipeline():
     print("Loading pipeline data...")
+
+    connector = RedditConnector(client_id=REDDIT_CLIENT_ID,
+                                client_secret=REDDIT_CLIENT_SECRET,
+                                password=REDDIT_PASSWORD,
+                                user_agent=REDDIT_USERAGENT,
+                                username=REDDIT_USERNAME)
 
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
         model_kwargs={'device': 'cpu'},
         encode_kwargs={'normalize_embeddings': True}
     )
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1500,
-                                              chunk_overlap=200,
-                                              add_start_index=True,
-                                              separators=['!Вопрос: '])
-    loader = DataSetLoader(ds_name='zelkame/ru-stackoverflow-py',
-                           splitter=splitter,
-                           logger=init_logger())
+    splitter = RecursiveCharacterTextSplitter(chunk_size=500,
+                                              chunk_overlap=50)
+    loader = DataSetLoader(splitter=splitter,
+                           logger=init_logger(),
+                           connector=connector)
     docs = loader.load()
 
     batch_size = 100
@@ -48,8 +59,8 @@ def pipeline():
                 vector_store = Chroma.from_documents(
                     documents=batch_docs,
                     embedding=embeddings,
-                    collection_name='ru_stackoverflow_py',
-                    persist_directory='./chroma_db'
+                    collection_name='CryptoCurrency',
+                    persist_directory=CHROMA_PATH
                 )
             else:
                 vector_store.add_documents(batch_docs)
@@ -64,11 +75,10 @@ def pipeline():
     try:
         while True:
             query = yield
-            results = vector_store.similarity_search(query, k=1)
+            results = vector_store.similarity_search(query, k=3)
             for doc in results:
                 print(f"Найден документ: {doc}")
-            question, answer = doc.page_content.split('###')[0][8:], doc.page_content.split('###')[1][7:]
-            prompt = PROMTP_TMPL.format(question, answer)
+            prompt = PROMTP_TMPL.format(query, '\n'.join([doc.page_content for doc in results]))
             response = client.responses.create(
                 model=f"gpt://{YANDEX_CLOUD_FOLDER}/{YANDEX_CLOUD_MODEL}",
                 input=prompt,
