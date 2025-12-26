@@ -8,11 +8,6 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 
 from constants import (CHROMA_PATH,
                        PROMTP_TMPL,
-                       REDDIT_PASSWORD,
-                       REDDIT_USERNAME,
-                       REDDIT_USERAGENT,
-                       REDDIT_CLIENT_ID,
-                       REDDIT_CLIENT_SECRET,
                        YANDEX_CLOUD_FOLDER,
                        YANDEX_CLOUD_API_KEY,
                        YANDEX_CLOUD_MODEL)
@@ -32,11 +27,7 @@ def init_logger():
 def pipeline():
     print("Loading pipeline data...")
 
-    connector = RedditConnector(client_id=REDDIT_CLIENT_ID,
-                                client_secret=REDDIT_CLIENT_SECRET,
-                                password=REDDIT_PASSWORD,
-                                user_agent=REDDIT_USERAGENT,
-                                username=REDDIT_USERNAME)
+    connector = RedditConnector()
 
     embeddings = HuggingFaceEmbeddings(
         model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
@@ -75,7 +66,7 @@ def pipeline():
     try:
         while True:
             query = yield
-            results = vector_store.similarity_search(query, k=3)
+            results = vector_store.similarity_search(query, k=5)
             for doc in results:
                 print(f"Найден документ: {doc}")
             prompt = PROMTP_TMPL.format(query, '\n'.join([doc.page_content for doc in results]))

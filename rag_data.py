@@ -40,7 +40,7 @@ class DataSetLoader:
                 'source': item.get('source', 'unknown'),
                 'title': item.get('title', ''),
                 'url': item.get('url', ''),
-                'date': item.get('created_utc', datetime.now()),
+                'date': item.get('created', datetime.now()),
                 'score': item.get('score', 0),
             }
             doc = Document(page_content=clean_text,

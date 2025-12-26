@@ -1,8 +1,9 @@
-from datetime import datetime
 from abc import ABC, abstractmethod
 
 from praw import Reddit
-from orjson import dumps
+import orjson
+import requests
+from requests import Session
 from xdk import Client
 
 
@@ -15,26 +16,43 @@ class Connector(ABC):
 
 class RedditConnector(Connector):
 
-    def __init__(self, client_id: str, client_secret: str, password: str, user_agent: str, username: str):
-        self.reddit = Reddit(
-            client_id=client_id,
-            client_secret=client_secret,
-            password=password,
-            user_agent=user_agent,
-            username=username,
-        )
+    def __init__(self):
+                 # client_id: str, client_secret: str, password: str, user_agent: str, username: str):
+        self.session = Session()
+        # Reddit(
+        #     client_id=client_id,
+        #     client_secret=client_secret,
+        #     password=password,
+        #     user_agent=user_agent,
+        #     username=username,
+        # )
 
-    def fetch(self, subreddit_name: str, limit: int = 100) -> list[dict]:
-        subreddit = self.reddit.subreddit(subreddit_name)
+    def fetch(self, subreddit_name: str = 'CryptoCurrency', limit: int = 100) -> list[dict]:
+        # subreddit = self.reddit.subreddit(subreddit_name)
+        response = self.session.get(f'https://www.reddit.com/r/{subreddit_name}/hot/.json?limit={limit}')
         posts = []
-        for post in subreddit.hot(limit=limit):
+
+        if response.status_code == requests.codes.too_many:
+            print('Too many for reddit api, using local mock json')
+            with open('./posts.json', 'r') as file:
+                data = orjson.loads(file.read())
+        elif response.status_code != requests.codes.ok and response.status_code != requests.codes.too_many:
+            data = response.json()
+            print(f'Invalid response, data:', data)
+            return posts
+        else:
+            data = response.json()
+
+        for post in data['data']['children']:
+            post_data = post['data']
+            post_text = post_data['selftext']
             posts.append({
                 'source': 'reddit',
-                'title': post.title,
-                'text': post.selftext,
-                'url': post.url,
-                'created_utc': datetime.fromtimestamp(post.created_utc),
-                'score': post.score
+                'title': post_data['title'],
+                'text': post_text if post_text else post_data['title'],
+                'url': post_data['url'],
+                'created': post_data['created'],
+                'score': post_data['score']
             })
         return posts
 

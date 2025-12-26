@@ -17,7 +17,5 @@ REDDIT_USERNAME = os.environ.get('REDDIT_USERNAME')
 
 CHROMA_PATH = './chroma_db'
 
-PROMTP_TMPL = ("""Ты - финансовый аналитик. Ответь на вопрос, используя только контекст ниже.
-                  Контекст: {}
-                  Вопрос: {}
-                  Ответ:""")
+PROMTP_TMPL = ("You are a finance analyst specializing in cryptocurrency. Answer the question using the given context "
+               "only.\n*context begins*\n{}\n*context ends*\nQuestion: {}\nYour answer:")
