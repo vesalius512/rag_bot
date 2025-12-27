@@ -1,3 +1,4 @@
+import logging
 from time import sleep
 
 
@@ -9,11 +10,15 @@ def retry_connect(_func=None, *, retries=5):
                 if res.status_code == 200:
                     return res.json()
                 else:
-                    print(f"Request failed {res.status_code}: {res.json()}, retry number: {retry + 1}")
+                    logging.info(
+                        f"Request failed {res.status_code}: {res.json()}, retry number: {retry + 1}"
+                    )
                     if res.status_code == 429:
                         sleep(5)
             return None
+
         return wrapper
+
     return decorator(_func) if _func else decorator
 
 
@@ -22,4 +27,5 @@ def coroutine(func):
         cr = func(*args, **kwargs)
         next(cr)
         return cr
+
     return wrapper

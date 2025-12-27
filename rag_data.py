@@ -1,8 +1,8 @@
+import html
 import logging
 import re
 from datetime import datetime
 
-import html
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -10,12 +10,8 @@ from fetch_data import Connector
 
 
 class DataSetLoader:
-    def __init__(self,
-                 splitter: RecursiveCharacterTextSplitter,
-                 logger: logging.Logger,
-                 connector: Connector):
+    def __init__(self, splitter: RecursiveCharacterTextSplitter, connector: Connector):
         self.splitter = splitter
-        self.logger = logger
         self.connector = connector
 
     @staticmethod
@@ -23,9 +19,9 @@ class DataSetLoader:
         """Очистка HTML текста"""
 
         text = html.unescape(text)
-        text = re.sub(r'<[^>]+>', '', text)
-        text = re.sub(r'\s+', ' ', text)
-        text = re.sub(r'[^\w\s.,!?$€£%()\[\]:;@#/+\-*]', '', text)
+        text = re.sub(r"<[^>]+>", "", text)
+        text = re.sub(r"\s+", " ", text)
+        text = re.sub(r"[^\w\s.,!?$€£%()\[\]:;@#/+\-*]", "", text)
 
         return text.strip()
 
@@ -35,21 +31,20 @@ class DataSetLoader:
         processed_data = []
 
         for item in documents:
-            clean_text = self.clean_html_text(item.get('text', ''))
+            clean_text = self.clean_html_text(item.get("text", ""))
             metadata = {
-                'source': item.get('source', 'unknown'),
-                'title': item.get('title', ''),
-                'url': item.get('url', ''),
-                'date': item.get('created', datetime.now()),
-                'score': item.get('score', 0),
+                "source": item.get("source", "unknown"),
+                "title": item.get("title", ""),
+                "url": item.get("url", ""),
+                "date": item.get("created", datetime.now()),
+                "score": item.get("score", 0),
             }
-            doc = Document(page_content=clean_text,
-                           metadata=metadata)
+            doc = Document(page_content=clean_text, metadata=metadata)
             processed_data.append(doc)
 
-            self.logger.info(f'Processed item: {doc}')
+            logging.info(f"Processed item: {doc}")
 
-        self.logger.info(f'Processed {len(processed_data)} documents')
+        logging.info(f"Processed {len(processed_data)} documents")
         return processed_data
 
     def load(self) -> list[Document]:
@@ -57,6 +52,6 @@ class DataSetLoader:
         documents = self.process_dataset_for_rag(raw_data)
 
         splits = self.splitter.split_documents(documents)
-        self.logger.info(f'Total splits: {len(splits)}')
+        logging.info(f"Total splits: {len(splits)}")
 
         return splits

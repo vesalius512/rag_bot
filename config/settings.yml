@@ -1,0 +1,32 @@
+DEVELOPMENT:
+  LOGGING_BASE_CONFIG:
+    version: 1
+    disable_existing_loggers: false
+    formatters:
+      default:
+        format: "[%(asctime)s] %(name)s %(levelname)s | %(filename)s [LINE:%(lineno)d]: %(message)s"
+        datefmt: "%d-%m-%Y %H:%M:%S"
+    handlers:
+      syslog:
+        class: logging.handlers.SysLogHandler
+        level: DEBUG
+        address: /dev/log
+        formatter: default
+        facility: local3
+      console:
+        level: DEBUG
+        class: logging.StreamHandler
+        formatter: default
+        stream: ext://sys.stdout
+      console_error:
+        level: ERROR
+        class: logging.StreamHandler
+        formatter: default
+        stream: ext://sys.stderr
+    loggers:
+      default:
+        level: INFO
+        handlers: [ console ]
+    root:
+      level: INFO
+      handlers: [ console ]
